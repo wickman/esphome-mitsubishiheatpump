@@ -421,8 +421,8 @@ void hpPacketDebug(byte* packet, unsigned int length, char* packetDirection) {
     }
     ESP_LOGV(
       "control",
-      "Packet: Len: %2d Dir: %c Bytes: %s",
-      length, *packetDirection, message.c_str());
+      "Packet: Len: %2d Dir: %s Bytes: %s",
+      length, packetDirection, message.c_str());
 }
 
 void MitsubishiHeatPump::setup() {
