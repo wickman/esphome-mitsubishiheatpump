@@ -420,7 +420,7 @@ void hpPacketDebug(byte* packet, unsigned int length, char* packetDirection) {
       message += String(packet[idx], HEX) + " ";
     }
     ESP_LOGV(
-      "control",
+      TAG,
       "Packet: Len: %2d Dir: %s Bytes: %s",
       length, packetDirection, message.c_str());
 }
