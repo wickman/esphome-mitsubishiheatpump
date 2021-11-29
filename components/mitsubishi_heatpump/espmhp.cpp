@@ -524,6 +524,7 @@ void MitsubishiHeatPump::dump_config() {
     ESP_LOGI("MitsubishiHeatPump", "  Saved heat: %.1f", heat_setpoint.value_or(-1));
     ESP_LOGI("MitsubishiHeatPump", "  Saved cool: %.1f", cool_setpoint.value_or(-1));
     ESP_LOGI("MitsubishiHeatPump", "  Saved auto: %.1f", auto_setpoint.value_or(-1));
+    ESP_LOGI("MitsubishiHeatPump", "  State: %d", this->get_component_state());
 }
 
 void MitsubishiHeatPump::dump_state() {
