@@ -410,6 +410,21 @@ void MitsubishiHeatPump::set_remote_temperature(float temp) {
     this->hp->setRemoteTemperature(temp);
 }
 
+#define HEX 16
+void hpPacketDebug(byte* packet, unsigned int length, char* packetDirection) {
+    String message;
+    for (int idx = 0; idx < length; idx++) {
+      if (packet[idx] < 16) {
+        message += "0";
+      }
+      message += String(packet[idx], HEX) + " ";
+    }
+    ESP_LOGV(
+      "control",
+      "Packet: Len: %2d Dir: %c Bytes: %s",
+      length, *packetDirection, message.c_str());
+}
+
 void MitsubishiHeatPump::setup() {
     // This will be called by App.setup()
     this->banner();
@@ -431,6 +446,7 @@ void MitsubishiHeatPump::setup() {
     this->target_temperature = NAN;
     this->fan_mode = climate::CLIMATE_FAN_OFF;
     this->swing_mode = climate::CLIMATE_SWING_OFF;
+    this->hp->setPacketCallback(hpPacketDebug);
 
 #ifdef USE_CALLBACKS
     hp->setSettingsChangedCallback(
