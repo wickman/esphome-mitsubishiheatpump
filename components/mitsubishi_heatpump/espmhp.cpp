@@ -45,7 +45,7 @@ MitsubishiHeatPump::MitsubishiHeatPump(
 void MitsubishiHeatPump::check_logger_conflict_() {
 #ifdef USE_LOGGER
     if (this->get_hw_serial_() == logger::global_logger->get_hw_serial()) {
-        ESP_LOGW(TAG, "  You're using the same serial port for logging"
+        ESP_LOGW("MitsubishiHeatPump", "  You're using the same serial port for logging"
                 " and the MitsubishiHeatPump component. Please disable"
                 " logging over the serial port by setting"
                 " logger:baud_rate to 0.");
@@ -98,7 +98,7 @@ climate::ClimateTraits& MitsubishiHeatPump::config_traits() {
  * Maps HomeAssistant/ESPHome modes to Mitsubishi modes.
  */
 void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
-    ESP_LOGV(TAG, "Control called.");
+    ESP_LOGV("MitsubishiHeatPump", "Control called.");
 
     bool updated = false;
     bool has_mode = call.get_mode().has_value();
@@ -220,7 +220,7 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
 
     //const char* VANE_MAP[7]        = {"AUTO", "1", "2", "3", "4", "5", "SWING"};
     if (call.get_swing_mode().has_value()) {
-        ESP_LOGV(TAG, "control - requested swing mode is %s",
+        ESP_LOGV("MitsubishiHeatPump", "control - requested swing mode is %s",
                 *call.get_swing_mode());
 
         this->swing_mode = *call.get_swing_mode();
@@ -234,11 +234,11 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
                 updated = true;
                 break;
             default:
-                ESP_LOGW(TAG, "control - received unsupported swing mode request.");
+                ESP_LOGW("MitsubishiHeatPump", "control - received unsupported swing mode request.");
 
         }
     }
-    ESP_LOGD(TAG, "control - Was HeatPump updated? %s", YESNO(updated));
+    ESP_LOGD("MitsubishiHeatPump", "control - Was HeatPump updated? %s", YESNO(updated));
 
     // send the update back to esphome:
     this->publish_state();
@@ -257,7 +257,7 @@ void MitsubishiHeatPump::hpSettingsChanged() {
          * to punt on the update. Likely not an issue when run in callback
          * mode, but that isn't working right yet.
          */
-        ESP_LOGW(TAG, "Waiting for HeatPump to read the settings the first time.");
+        ESP_LOGW("MitsubishiHeatPump", "Waiting for HeatPump to read the settings the first time.");
         esphome::delay(10);
         return;
     }
@@ -298,7 +298,7 @@ void MitsubishiHeatPump::hpSettingsChanged() {
             this->action = climate::CLIMATE_ACTION_IDLE;
         } else {
             ESP_LOGW(
-                    TAG,
+                    "MitsubishiHeatPump",
                     "Unknown climate mode value %s received from HeatPump",
                     currentSettings.mode
             );
@@ -308,7 +308,7 @@ void MitsubishiHeatPump::hpSettingsChanged() {
         this->action = climate::CLIMATE_ACTION_OFF;
     }
 
-    ESP_LOGI(TAG, "Climate mode is: %i", this->mode);
+    ESP_LOGI("MitsubishiHeatPump", "Climate mode is: %i", this->mode);
 
     /*
      * ******* HANDLE FAN CHANGES ********
@@ -328,7 +328,7 @@ void MitsubishiHeatPump::hpSettingsChanged() {
     } else { //case "AUTO" or default:
         this->fan_mode = climate::CLIMATE_FAN_AUTO;
     }
-    ESP_LOGI(TAG, "Fan mode is: %i", this->fan_mode);
+    ESP_LOGI("MitsubishiHeatPump", "Fan mode is: %i", this->fan_mode);
 
     /* ******** HANDLE MITSUBISHI VANE CHANGES ********
      * const char* VANE_MAP[7]        = {"AUTO", "1", "2", "3", "4", "5", "SWING"};
@@ -339,7 +339,7 @@ void MitsubishiHeatPump::hpSettingsChanged() {
     else {
         this->swing_mode = climate::CLIMATE_SWING_OFF;
     }
-    ESP_LOGI(TAG, "Swing mode is: %i", this->swing_mode);
+    ESP_LOGI("MitsubishiHeatPump", "Swing mode is: %i", this->swing_mode);
 
 
 
@@ -347,7 +347,7 @@ void MitsubishiHeatPump::hpSettingsChanged() {
      * ******** HANDLE TARGET TEMPERATURE CHANGES ********
      */
     this->target_temperature = currentSettings.temperature;
-    ESP_LOGI(TAG, "Target temp is: %f", this->target_temperature);
+    ESP_LOGI("MitsubishiHeatPump", "Target temp is: %f", this->target_temperature);
 
     /*
      * ******** Publish state back to ESPHome. ********
@@ -406,7 +406,7 @@ void MitsubishiHeatPump::hpStatusChanged(heatpumpStatus currentStatus) {
 }
 
 void MitsubishiHeatPump::set_remote_temperature(float temp) {
-    ESP_LOGD(TAG, "Setting remote temp: %.1f", temp);
+    ESP_LOGD("MitsubishiHeatPump", "Setting remote temp: %.1f", temp);
     this->hp->setRemoteTemperature(temp);
 }
 
@@ -420,18 +420,19 @@ void hpPacketDebug(byte* packet, unsigned int length, char* packetDirection) {
       message += String(packet[idx], HEX) + " ";
     }
     ESP_LOGV(
-      TAG,
+      "MitsubishiHeatPump",
       "Packet: Len: %2d Dir: %s Bytes: %s",
       length, packetDirection, message.c_str());
 }
 
 void MitsubishiHeatPump::setup() {
     // This will be called by App.setup()
+    ESP_LOGV("MitsubishiHeatPump", "::setup called.");
     this->banner();
-    ESP_LOGV(TAG, "Setting up UART...");
+    ESP_LOGV("MitsubishiHeatPump", "Setting up UART...");
     if (!this->get_hw_serial_()) {
         ESP_LOGV(
-                TAG,
+                "MitsubishiHeatPump",
                 "No HardwareSerial was provided. "
                 "Software serial ports are unsupported by this component."
         );
@@ -440,7 +441,7 @@ void MitsubishiHeatPump::setup() {
     }
     this->check_logger_conflict_();
 
-    ESP_LOGV(TAG, "Intializing new HeatPump object.");
+    ESP_LOGV("MitsubishiHeatPump", "Intializing new HeatPump object.");
     this->hp = new HeatPump();
     this->current_temperature = NAN;
     this->target_temperature = NAN;
@@ -463,21 +464,21 @@ void MitsubishiHeatPump::setup() {
 #endif
 
     ESP_LOGV(
-            TAG,
+            "MitsubishiHeatPump",
             "hw_serial(%p) is &Serial(%p)? %s",
             this->get_hw_serial_(),
             &Serial,
             YESNO(this->get_hw_serial_() == &Serial)
     );
 
-    ESP_LOGV(TAG, "Calling hp->connect(%p)", this->get_hw_serial_());
+    ESP_LOGV("MitsubishiHeatPump", "Calling hp->connect(%p)", this->get_hw_serial_());
 
     if (hp->connect(this->get_hw_serial_(), this->baud_)) {
         hp->sync();
     }
     else {
         ESP_LOGV(
-                TAG,
+                "MitsubishiHeatPump",
                 "Connection to HeatPump failed."
                 " Marking MitsubishiHeatPump component as failed."
         );
@@ -517,15 +518,15 @@ optional<float> MitsubishiHeatPump::load(ESPPreferenceObject& storage) {
 
 void MitsubishiHeatPump::dump_config() {
     this->banner();
-    ESP_LOGI(TAG, "  Supports HEAT: %s", YESNO(true));
-    ESP_LOGI(TAG, "  Supports COOL: %s", YESNO(true));
-    ESP_LOGI(TAG, "  Supports AWAY mode: %s", YESNO(false));
-    ESP_LOGI(TAG, "  Saved heat: %.1f", heat_setpoint.value_or(-1));
-    ESP_LOGI(TAG, "  Saved cool: %.1f", cool_setpoint.value_or(-1));
-    ESP_LOGI(TAG, "  Saved auto: %.1f", auto_setpoint.value_or(-1));
+    ESP_LOGI("MitsubishiHeatPump", "  Supports HEAT: %s", YESNO(true));
+    ESP_LOGI("MitsubishiHeatPump", "  Supports COOL: %s", YESNO(true));
+    ESP_LOGI("MitsubishiHeatPump", "  Supports AWAY mode: %s", YESNO(false));
+    ESP_LOGI("MitsubishiHeatPump", "  Saved heat: %.1f", heat_setpoint.value_or(-1));
+    ESP_LOGI("MitsubishiHeatPump", "  Saved cool: %.1f", cool_setpoint.value_or(-1));
+    ESP_LOGI("MitsubishiHeatPump", "  Saved auto: %.1f", auto_setpoint.value_or(-1));
 }
 
 void MitsubishiHeatPump::dump_state() {
     LOG_CLIMATE("", "MitsubishiHeatPump Climate", this);
-    ESP_LOGI(TAG, "HELLO");
+    ESP_LOGI("MitsubishiHeatPump", "HELLO");
 }
